@@ -2,6 +2,6 @@
 {
     public interface IElasticFileReader
     {
-        Task ReadFile(string path);
+        Task<string> ReadFileAsync(string path);
     }
 }

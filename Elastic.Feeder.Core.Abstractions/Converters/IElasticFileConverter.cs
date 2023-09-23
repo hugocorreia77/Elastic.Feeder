@@ -2,5 +2,8 @@
 {
     public interface IElasticFileConverter
     {
+
+        string FromXmlToJson(string xmlString);
+
     }
 }

@@ -13,7 +13,7 @@ namespace Elastic.Feeder.Core.Readers
             _logger = logger;
         }
 
-        public abstract Task ReadFile(string path);
+        public abstract Task<string> ReadFileAsync(string path);
 
         public bool IsFileLocked(string filePath)
         {

@@ -11,14 +11,14 @@ namespace Elastic.Feeder.Core.Observers
         private readonly ILogger<ElasticFileObserver> _logger;
         private readonly ObserverConfiguration _configuration;
         private List<FileSystemWatcher> _watchers = new List<FileSystemWatcher>();
-        private readonly ElasticFileReaderResolver _serviceResolver;
+        private readonly ElasticFileReaderResolver _serviceReaderResolver;
 
 
-        public ElasticFileObserver(ILogger<ElasticFileObserver> logger, ElasticFileReaderResolver serviceResolver, 
+        public ElasticFileObserver(ILogger<ElasticFileObserver> logger, ElasticFileReaderResolver serviceReaderResolver, 
             IOptions<ObserverConfiguration> configuration) 
         {
             _logger = logger;
-            _serviceResolver = serviceResolver;
+            _serviceReaderResolver = serviceReaderResolver;
             _configuration = configuration.Value;
         }
 
@@ -55,14 +55,22 @@ namespace Elastic.Feeder.Core.Observers
         }
 
 
-        private void OnChanged(object source, FileSystemEventArgs e)
+        private async void OnChanged(object source, FileSystemEventArgs e)
         {
             _logger.LogInformation($"A new file appears! {e.FullPath}");
 
             var fileType = GetFileType(e.FullPath);
-            var fileReaderService = _serviceResolver(fileType);
+            var fileReaderService = _serviceReaderResolver(fileType);
 
-            fileReaderService.ReadFile(e.FullPath);
+            try
+            {
+                var jsonData = await fileReaderService.ReadFileAsync(e.FullPath);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured. Please, check the reason.");
+            }
         }
 
         private string GetFileType(string filePath)

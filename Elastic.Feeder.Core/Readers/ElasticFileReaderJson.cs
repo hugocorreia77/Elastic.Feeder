@@ -13,17 +13,25 @@ namespace Elastic.Feeder.Core.Readers
             _logger = logger;
         }
 
-        public override Task ReadFile(string path)
+        public override async Task<string> ReadFileAsync(string path)
         {
             _logger.LogInformation($"Reading JSON file : {path}");
+            try
+            {
+                using StreamReader reader = new(path);
+                var json = await reader.ReadToEndAsync();
 
-            using StreamReader reader = new(path);
-            var json = reader.ReadToEnd();
+                _logger.LogInformation("JSON File Content:");
+                _logger.LogInformation($"{json}");
 
-            _logger.LogInformation("JSON File Content:");
-            _logger.LogInformation($"{json}");
-
-            return Task.CompletedTask;
+                return json;
+            }
+            catch
+            {
+                _logger.LogError($"An error occured while reading file: {path}");
+                throw;
+            }
+            
         }
     }
 }
