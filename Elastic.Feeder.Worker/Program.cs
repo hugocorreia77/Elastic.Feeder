@@ -2,6 +2,7 @@ using Elastic.Clients.Elasticsearch;
 using Elastic.Feeder.Core.Abstractions.Configurations;
 using Elastic.Feeder.Core.Abstractions.Converters;
 using Elastic.Feeder.Core.Abstractions.Observers;
+using Elastic.Feeder.Core.Abstractions.Readers;
 using Elastic.Feeder.Core.Abstractions.Services;
 using Elastic.Feeder.Core.Converters;
 using Elastic.Feeder.Core.Observers;
@@ -19,25 +20,9 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
         IConfiguration configuration = hostContext.Configuration;
         services.Configure<ObserverConfiguration>(configuration.GetSection(nameof(ObserverConfiguration)));
-        //services.Configure<ElasticsearchConfiguration>(configuration.GetSection(nameof(ElasticsearchConfiguration)));
-
-
-
-        services.AddTransient<ElasticFileReaderJson>();
-        services.AddTransient<ElasticFileReaderXml>();
-
-        services.AddTransient<ElasticFileReaderResolver>(serviceProvider => key =>
-        {
-            switch (key.ToUpper())
-            {
-                case "JSON":
-                    return serviceProvider.GetService<ElasticFileReaderJson>();
-                case "XML":
-                    return serviceProvider.GetService<ElasticFileReaderXml>();
-                default:
-                    throw new KeyNotFoundException(); // or maybe return null, up to you
-            }
-        }); 
+        services.Configure<ElasticsearchConfiguration>(configuration.GetSection(nameof(ElasticsearchConfiguration)));
+        
+        services.AddTransient<IElasticFileManager, ElasticFileManager>();
 
         services.AddTransient<IElasticFileConverter, ElasticFileConverter>();
         services.AddSingleton<IElasticFileObserver, ElasticFileObserver>();

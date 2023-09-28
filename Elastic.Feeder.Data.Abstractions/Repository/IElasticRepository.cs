@@ -1,9 +1,11 @@
-﻿namespace Elastic.Feeder.Data.Abstractions.Repository
+﻿using Elastic.Feeder.Core.Abstractions.Models;
+
+namespace Elastic.Feeder.Data.Abstractions.Repository
 {
     public interface IElasticRepository
     {
 
-        Task WriteDocument(string jsonDocument);
+        Task<bool> WriteDocument(FileDetails fileDetails);
 
     }
 }

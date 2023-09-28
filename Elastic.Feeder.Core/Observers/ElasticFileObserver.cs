@@ -1,7 +1,7 @@
 ﻿using Elastic.Feeder.Core.Abstractions.Configurations;
 using Elastic.Feeder.Core.Abstractions.Observers;
+using Elastic.Feeder.Core.Abstractions.Readers;
 using Elastic.Feeder.Core.Abstractions.Services;
-using Elastic.Feeder.Core.Readers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -12,15 +12,16 @@ namespace Elastic.Feeder.Core.Observers
         private readonly ILogger<ElasticFileObserver> _logger;
         private readonly ObserverConfiguration _configuration;
         private List<FileSystemWatcher> _watchers = new List<FileSystemWatcher>();
-        private readonly ElasticFileReaderResolver _serviceReaderResolver;
+        private readonly IElasticFileManager _serviceFileManager;
         private readonly IDocumentService _documentService;
 
-        public ElasticFileObserver(ILogger<ElasticFileObserver> logger, ElasticFileReaderResolver serviceReaderResolver,
+        public ElasticFileObserver(ILogger<ElasticFileObserver> logger, 
+            IElasticFileManager serviceFileManager,
             IDocumentService documentService,
             IOptions<ObserverConfiguration> configuration) 
         {
             _logger = logger;
-            _serviceReaderResolver = serviceReaderResolver;
+            _serviceFileManager = serviceFileManager;
             _configuration = configuration.Value;
             _documentService = documentService;
         }
@@ -57,38 +58,29 @@ namespace Elastic.Feeder.Core.Observers
             return Task.CompletedTask;
         }
 
-
         private async void OnChanged(object source, FileSystemEventArgs e)
         {
             _logger.LogInformation($"A new file appears! {e.FullPath}");
 
-            var fileType = GetFileType(e.FullPath);
-            var fileReaderService = _serviceReaderResolver(fileType);
-
             try
             {
-                var jsonData = await fileReaderService.ReadFileAsync(e.FullPath);
-
-                var encodedData = Base64Encode(jsonData);
-
-                await _documentService.SaveDocument(encodedData);
+                var fileDetails = await _serviceFileManager.ReadFileAsync(e.FullPath);
+                if(await _documentService.SaveDocument(fileDetails))
+                {
+                    if(_configuration.DeleteLocalFileAfterUpload)
+                    {
+                        _serviceFileManager.DeleteFile(e.FullPath);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("File {fileName} will not be removed from folder due to configurations.", fileDetails.FileName);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occured. Please, check the reason.");
             }
-        }
-
-        public static string Base64Encode(string plainText)
-        {
-            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
-            return System.Convert.ToBase64String(plainTextBytes);
-        }
-
-        private string GetFileType(string filePath)
-        {
-            FileInfo fileInfo = new FileInfo(filePath);
-            return fileInfo.Extension.Substring(1);
         }
 
         private IEnumerable<string> GetFilters() 

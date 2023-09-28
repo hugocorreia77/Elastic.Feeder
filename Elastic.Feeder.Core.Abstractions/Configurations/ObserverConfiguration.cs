@@ -4,5 +4,6 @@
     {
         public string Folder { get; set; }
         public string FileTypes { get; set; }
+        public bool DeleteLocalFileAfterUpload { get; set; }
     }
 }

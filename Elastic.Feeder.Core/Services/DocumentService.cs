@@ -1,4 +1,5 @@
-﻿using Elastic.Feeder.Core.Abstractions.Services;
+﻿using Elastic.Feeder.Core.Abstractions.Models;
+using Elastic.Feeder.Core.Abstractions.Services;
 using Elastic.Feeder.Data.Abstractions.Repository;
 
 namespace Elastic.Feeder.Core.Services
@@ -12,9 +13,8 @@ namespace Elastic.Feeder.Core.Services
             _elasticRepository = elasticRepository;
         }
 
-        public async Task SaveDocument(string jsonDocument)
-        {
-            await _elasticRepository.WriteDocument(jsonDocument);
-        }
+        public Task<bool> SaveDocument(FileDetails jsonDocument)
+            => _elasticRepository.WriteDocument(jsonDocument);
+        
     }
 }

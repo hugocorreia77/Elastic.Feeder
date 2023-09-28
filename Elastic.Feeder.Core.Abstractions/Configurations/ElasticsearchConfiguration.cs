@@ -6,5 +6,7 @@
         public string Fingerprint { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+        public string DocumentsIndex { get; set; }
+        public string DocumentsPipeline { get; set; }
     }
 }
