@@ -14,5 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Elastic.Feeder.Core.Abstractions\Elastic.Feeder.Core.Abstractions.csproj" />
     <ProjectReference Include="..\Elastic.Feeder.Core\Elastic.Feeder.Core.csproj" />
+    <ProjectReference Include="..\Elastic.Feeder.Data.Abstractions\Elastic.Feeder.Data.Abstractions.csproj" />
+    <ProjectReference Include="..\Elastic.Feeder.Data\Elastic.Feeder.Data.csproj" />
   </ItemGroup>
 </Project>
