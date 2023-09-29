@@ -14,8 +14,6 @@ namespace Elastic.Feeder.Data.Repository
         private readonly ElasticsearchClient _elasticClient;
         private readonly ElasticsearchConfiguration _elasticConfigs;
 
-        private readonly string MYINDEX = "mydocuments";
-
         public ElasticRepository(ILogger<ElasticRepository> logger, ElasticsearchClient elasticClient
             , IOptions<ElasticsearchConfiguration> elasticConfigs) {
             _logger = logger;
@@ -42,6 +40,21 @@ namespace Elastic.Feeder.Data.Repository
 
             _logger.LogError("File {document} could not be uploaded!", fileDetails.FileName);
             return false;
+        }
+
+        public async Task<IEnumerable<string>> Search(string search)
+        {
+            var searchQID = await _elasticClient.SearchAsync<List<string>>(sd => sd
+                     .Index(_elasticConfigs.DocumentsIndex)
+                     .Size(10000)
+                     .Query(q => q
+                            .Term(t => t.Equals(search))
+                      ));
+
+            
+            return searchQID.Hits.Any() ?
+                        searchQID.Hits.Select(h => h.Id)
+                        : new List<string>();
         }
     }
 }

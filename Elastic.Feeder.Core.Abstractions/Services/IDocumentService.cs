@@ -5,5 +5,6 @@ namespace Elastic.Feeder.Core.Abstractions.Services
     public interface IDocumentService
     {
         Task<bool> SaveDocument(FileDetails jsonDocument);
+        Task<IEnumerable<string>> Search(string search);
     }
 }
