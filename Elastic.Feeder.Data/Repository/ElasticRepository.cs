@@ -1,38 +1,40 @@
-﻿using Elastic.Clients.Elasticsearch;
-using Elastic.Feeder.Core.Abstractions.Configurations;
+﻿using Elastic.Feeder.Core.Abstractions.Configurations;
 using Elastic.Feeder.Core.Abstractions.ElasticDocuments;
 using Elastic.Feeder.Core.Abstractions.Models;
 using Elastic.Feeder.Data.Abstractions.Repository;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Nest;
 
 namespace Elastic.Feeder.Data.Repository
 {
     public class ElasticRepository : IElasticRepository
     {
         private readonly ILogger<ElasticRepository> _logger;
-        private readonly ElasticsearchClient _elasticClient;
+        private readonly ElasticClient _elasticClient;
         private readonly ElasticsearchConfiguration _elasticConfigs;
 
-        public ElasticRepository(ILogger<ElasticRepository> logger, ElasticsearchClient elasticClient
+        public ElasticRepository(ILogger<ElasticRepository> logger, ElasticClient elasticClient
             , IOptions<ElasticsearchConfiguration> elasticConfigs) {
             _logger = logger;
             _elasticClient = elasticClient;
             _elasticConfigs = elasticConfigs.Value;
         }
 
-        public async Task<bool> WriteDocument(FileDetails fileDetails)
+        public async Task<bool> WriteFile(FileDetails fileDetails)
         {
             var document = new Document
             {
-                data = fileDetails.Data
+                Data = fileDetails.Data
             };
 
-            var response = await _elasticClient.IndexAsync(document, _elasticConfigs.DocumentsIndex,
-                                                        i => i.Pipeline(_elasticConfigs.DocumentsPipeline)
-                                                                    .Id(fileDetails.FileName));
+            var response = await _elasticClient.IndexAsync(document,
+                                                            p => p.Id(fileDetails.FileName)
+                                                                  .Index(_elasticConfigs.DocumentsIndex)
+                                                                  .Pipeline(_elasticConfigs.DocumentsPipeline)
+                                                          );
 
-            if(response.IsSuccess())
+            if (response.IsValid)
             {
                 _logger.LogInformation("File {document} indexed successfully!", fileDetails.FileName);
                 return true;
@@ -42,18 +44,25 @@ namespace Elastic.Feeder.Data.Repository
             return false;
         }
 
-        public async Task<IEnumerable<string>> Search(string search)
+        public async Task<IEnumerable<string>> SearchFileContentAsync(string search)
         {
-            var searchQID = await _elasticClient.SearchAsync<List<string>>(sd => sd
-                     .Index(_elasticConfigs.DocumentsIndex)
-                     .Size(10000)
-                     .Query(q => q
-                            .Term(t => t.Equals(search))
-                      ));
+            var searchResponse = await _elasticClient.SearchAsync<Source>
+                    (sd => sd
+                        .Index(_elasticConfigs.DocumentsIndex)
+                        .Query(nq => +nq
+                            .Match(m => m
+                                .Field(a => a.Attachment.Content)
+                                .Query(search)
+                            ) 
+                        )
+                        .Source(s => s.Excludes(sf => 
+                                                sf.Field(a => a.Attachment.Content)
+                                                    .Field(a => a.Data))
+                        ) 
+                    );
 
-            
-            return searchQID.Hits.Any() ?
-                        searchQID.Hits.Select(h => h.Id)
+            return searchResponse.Hits.Any() ?
+                        searchResponse.Hits.Select(h => h.Id)
                         : new List<string>();
         }
     }

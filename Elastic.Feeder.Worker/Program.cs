@@ -1,19 +1,16 @@
-using Elastic.Clients.Elasticsearch;
 using Elastic.Feeder.Core.Abstractions.Configurations;
 using Elastic.Feeder.Core.Abstractions.Converters;
 using Elastic.Feeder.Core.Abstractions.Observers;
 using Elastic.Feeder.Core.Abstractions.Readers;
 using Elastic.Feeder.Core.Abstractions.Services;
 using Elastic.Feeder.Core.Converters;
+using Elastic.Feeder.Core.FileManagers;
 using Elastic.Feeder.Core.Observers;
-using Elastic.Feeder.Core.Readers;
 using Elastic.Feeder.Core.Services;
 using Elastic.Feeder.Data.Abstractions.Repository;
 using Elastic.Feeder.Data.Repository;
 using Elastic.Feeder.Worker;
 using Elastic.Feeder.Worker.Boostrap;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((hostContext, services) =>
@@ -28,7 +25,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IElasticFileObserver, ElasticFileObserver>();
 
         services.AddTransient<IElasticRepository, ElasticRepository>();
-        services.AddTransient<IDocumentService, DocumentService>();
+        services.AddTransient<IElasticFileService, ElasticFileService>();
 
         services.AddElasticSearchClient(configuration);
 

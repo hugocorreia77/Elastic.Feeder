@@ -1,7 +1,7 @@
 ﻿using Elastic.Feeder.Core.Abstractions.Configurations;
 using Nest;
 
-namespace Elastic.Feeder.Worker.Boostrap
+namespace Elastic.Feeder.WebApi.Bootstrap
 {
     public static class BootstrapExtensions
     {

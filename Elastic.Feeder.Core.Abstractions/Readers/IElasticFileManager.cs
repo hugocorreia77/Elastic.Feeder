@@ -4,7 +4,7 @@ namespace Elastic.Feeder.Core.Abstractions.Readers
 {
     public interface IElasticFileManager
     {
-        Task<FileDetails> ReadFileAsync(string path);
+        FileDetails ReadFile(string path);
         bool DeleteFile(string path);
     }
 }

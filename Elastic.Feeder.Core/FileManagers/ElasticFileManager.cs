@@ -3,7 +3,7 @@ using Elastic.Feeder.Core.Abstractions.Readers;
 using Elastic.Feeder.Core.Observers;
 using Microsoft.Extensions.Logging;
 
-namespace Elastic.Feeder.Core.Readers
+namespace Elastic.Feeder.Core.FileManagers
 {
     public class ElasticFileManager : IElasticFileManager
     {
@@ -14,22 +14,18 @@ namespace Elastic.Feeder.Core.Readers
             _logger = logger;
         }
 
-        public async Task<FileDetails> ReadFileAsync(string path)
+        public FileDetails ReadFile(string path)
         {
             _logger.LogInformation($"Reading file : {path}");
             try
             {
-                using StreamReader reader = new(path);
-                var fileData = await reader.ReadToEndAsync();
-
-                _logger.LogInformation("File Content:");
-
                 var fileInfo = new FileInfo(path);
+                var binaryData = GetBinaryFile(path);
 
                 return new FileDetails
                 {
                     FileName = fileInfo.Name,
-                    Data = Base64Encode(fileData)
+                    Data = Convert.ToBase64String(binaryData)
                 };
             }
             catch
@@ -39,10 +35,15 @@ namespace Elastic.Feeder.Core.Readers
             }
         }
 
-        private static string Base64Encode(string plainText)
+        private byte[] GetBinaryFile(string filename)
         {
-            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
-            return System.Convert.ToBase64String(plainTextBytes);
+            byte[] bytes;
+            using (FileStream file = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            {
+                bytes = new byte[file.Length];
+                file.Read(bytes, 0, (int)file.Length);
+            }
+            return bytes;
         }
 
         public bool DeleteFile(string path)

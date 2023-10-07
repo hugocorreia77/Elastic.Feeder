@@ -13,11 +13,11 @@ namespace Elastic.Feeder.Core.Observers
         private readonly ObserverConfiguration _configuration;
         private List<FileSystemWatcher> _watchers = new List<FileSystemWatcher>();
         private readonly IElasticFileManager _serviceFileManager;
-        private readonly IDocumentService _documentService;
+        private readonly IElasticFileService _documentService;
 
         public ElasticFileObserver(ILogger<ElasticFileObserver> logger, 
             IElasticFileManager serviceFileManager,
-            IDocumentService documentService,
+            IElasticFileService documentService,
             IOptions<ObserverConfiguration> configuration) 
         {
             _logger = logger;
@@ -64,8 +64,8 @@ namespace Elastic.Feeder.Core.Observers
 
             try
             {
-                var fileDetails = await _serviceFileManager.ReadFileAsync(e.FullPath);
-                if(await _documentService.SaveDocument(fileDetails))
+                var fileDetails = _serviceFileManager.ReadFile(e.FullPath);
+                if(await _documentService.SaveFile(fileDetails))
                 {
                     if(_configuration.DeleteLocalFileAfterUpload)
                     {
