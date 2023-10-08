@@ -53,17 +53,38 @@ namespace Elastic.Feeder.Data.Repository
                             .Match(m => m
                                 .Field(a => a.Attachment.Content)
                                 .Query(search)
-                            ) 
+                            )
                         )
-                        .Source(s => s.Excludes(sf => 
+                        .Source(s => s.Excludes(sf =>
                                                 sf.Field(a => a.Attachment.Content)
-                                                    .Field(a => a.Data))
-                        ) 
+                                                .Field(a => a.Data))
+                        )
                     );
 
             return searchResponse.Hits.Any() ?
                         searchResponse.Hits.Select(h => h.Id)
                         : new List<string>();
+        }
+
+        public async Task<string> GetFileDataAsync(string fileName)
+        {
+            var searchResponse = await _elasticClient.SearchAsync<Source>
+                   (sd => sd
+                       .Index(_elasticConfigs.DocumentsIndex)
+                       .Query(nq => +nq
+                        .Ids(m => m.Values(fileName))
+                       )
+                       .Source(s => s.Excludes(sf =>
+                                               sf.Field(a => a.Attachment.Content))
+                       )
+                   );
+
+            if (searchResponse.Hits.Any())
+            {
+                return searchResponse.Hits.FirstOrDefault().Source.Data;
+            }
+
+            throw new ArgumentException("File not found!");
         }
     }
 }

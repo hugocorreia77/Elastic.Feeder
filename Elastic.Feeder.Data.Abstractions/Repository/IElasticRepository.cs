@@ -6,5 +6,6 @@ namespace Elastic.Feeder.Data.Abstractions.Repository
     {
         Task<bool> WriteFile(FileDetails fileDetails);
         Task<IEnumerable<string>> SearchFileContentAsync(string search);
+        Task<string> GetFileDataAsync(string fileName);
     }
 }

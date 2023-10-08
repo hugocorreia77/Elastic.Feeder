@@ -6,5 +6,6 @@ namespace Elastic.Feeder.Core.Abstractions.Services
     {
         Task<bool> SaveFile(FileDetails jsonDocument);
         Task<IEnumerable<string>> SearchFileContentAsync(string search);
+        Task<string> GetFileDataAsync(string fileName);
     }
 }

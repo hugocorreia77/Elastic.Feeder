@@ -14,6 +14,10 @@ namespace Elastic.Feeder.Core.Services
             _elasticRepository = elasticRepository;
         }
 
+        public Task<string> GetFileDataAsync(string fileName)
+            => _elasticRepository.GetFileDataAsync(fileName);
+
+
         public Task<bool> SaveFile(FileDetails jsonDocument)
             => _elasticRepository.WriteFile(jsonDocument);
 
