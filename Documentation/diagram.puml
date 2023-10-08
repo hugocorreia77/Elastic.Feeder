@@ -1,0 +1,23 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+!define DEVICONSTWO https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons2
+
+!include DEVICONSTWO/csharp.puml
+
+
+Container(worker, "Elastic.Feeder.Worker", ".NET 6", "Observes a folder and upload files.", $sprite="csharp")
+
+Container(webAPI, "Elastic.Feeder.WebApi", ".NET 6", "WebApi to search and get files.", $sprite="csharp")
+
+Container(folder, "Folder", "","Contains files to be uploaded", $sprite="&folder,scale=5.0")
+
+Container(elastic, "", $sprite="img:https://sue.eu/wp-content/uploads/sites/6/2022/07/elastic-logo-920x920-sue-v02.png{scale=0.1}")
+
+Rel(worker, folder, "reads files")
+
+Rel(worker, elastic, "writes files")
+
+Rel(webAPI, elastic, "searches")
+
+@enduml
